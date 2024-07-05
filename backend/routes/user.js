@@ -59,13 +59,13 @@ router.post('/signup', async(req,res) => {
             var transporter = nodemailer.createTransport({
                 service: 'gmail',
                 auth: {
-                  user: 'dhumchi4010@gmail.com',
-                  pass: 'Dhumchi@2019'
+                  user: `${process.env.EMAIL}`,
+                  pass: `${process.env.PASSWORD}`
                 }
               });
               
               var mailOptions = {
-                from: 'dhumchi4010@gmail.com',
+                from: `${process.env.EMAIL}`,
                 to: email,
                 subject: 'Sending Email using Node.js',
                 text: `http://localhost:5173/resetPassword/${token}`
