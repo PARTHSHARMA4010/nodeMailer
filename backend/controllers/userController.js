@@ -91,4 +91,21 @@ export const forgotPassword = async (req, res) => {
         console.error(err);
         return res.status(500).json({ message: "Internal server error" });
     }
+
 };
+
+
+export const resetPassword = async(req,res) => {
+    const {token} = req.params;
+    const {password} = req.body
+    try{
+        const decoded = await jwt.verify(token,process.env.KEY)
+        const id = decoded.id
+        const hashPassword = await bcrypt.hash(password,10)
+        await User.findByIdAndUpdate({_id: id}, {password: hashPassword})
+        return res.json({status: true, message: "Password Reset"})
+
+    } catch(err){
+        return res.json("SOmething went wrong")
+    }
+}
