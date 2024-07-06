@@ -61,66 +61,37 @@ router.post('/forgot-password', async (req, res) => {
     const { email } = req.body;
     try {
 
-      const user = await User.findOne({ email });
+
+        const user = await User.findOne({ email });
         if (!user) {
             return res.status(404).json({ message: "User not registered" });
         }
-      const token = jwt.sign({ id: user._id }, process.env.KEY, { expiresIn: '5m' });
 
+        const token = jwt.sign({ id: user._id }, process.env.KEY, { expiresIn: '5m' });
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.EMAIL,
+                pass: process.env.PASSWORD
+            }
+        });
 
-      let testAccount = await nodemailer.createTestAccount();
+        const mailOptions = {
+            from: process.env.EMAIL,
+            to: email,
+            subject: 'Password Reset',
+            text:  `
+            Please click on the link to reset your Password.
+            http://localhost:5173/resetPassword/${token}`
+        };
 
-
-      let transporter = await nodemailer.createTransport({
-        host: "smtp.ethereal.email",
-        port: 587,
-    
-        auth: {
-          user: "celestine69@ethereal.email",
-          pass: "nS7p5uAJx9YZgv7MzV"
-      }
-  })
-
-  let info = await transporter.sendMail({
-    from: '"Parth Sharma" <trap_sh4010@gmail.com>', // sender address
-    to: email, // list of receivers
-    subject: "Reset Password Link", // Subject line
-    text: `Click the link to reset your password: http://localhost:5173/resetPassword/${token}`, // plain text body
-    html: "<b>Parth Sharma</b>", // html body
-    })
-
-      res.json(info)
-
-
-
-        // const user = await User.findOne({ email });
-        // if (!user) {
-        //     return res.status(404).json({ message: "User not registered" });
-        // }
-
-        // const token = jwt.sign({ id: user._id }, process.env.KEY, { expiresIn: '5m' });
-        // const transporter = nodemailer.createTransport({
-        //     service: 'gmail',
-        //     auth: {
-        //         user: process.env.EMAIL,
-        //         pass: process.env.PASSWORD
-        //     }
-        // });
-
-        // const mailOptions = {
-        //     from: process.env.EMAIL,
-        //     to: email,
-        //     subject: 'Password Reset',
-        //     text: 
-        // };
-
-        // transporter.sendMail(mailOptions, function (error, info) {
-        //     if (error) {
-        //         return res.status(500).json({ message: "Error. Email not sent" });
-        //     } else {
-        //         return res.status(200).json({ status: true, message: "Email sent" });
-        //     }
-        // });
+        transporter.sendMail(mailOptions, function (error, info) {
+            if (error) {
+                return res.status(500).json({ message: "Error. Email not sent" });
+            } else {
+                return res.status(200).json({ status: true, message: "Email sent" });
+            }
+        })
     } catch (err) {
         console.error(err);
         return res.status(500).json({ message: "Internal server error" });
